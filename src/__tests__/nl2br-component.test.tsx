@@ -1,5 +1,4 @@
 import { render } from '@testing-library/react';
-import { isValidElement, type ReactNode } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -23,17 +22,29 @@ describe('Nl2br', () => {
     expect(renderToStaticMarkup(<Nl2br>{'a\n\nb'}</Nl2br>)).toBe('a<br/><br/>b');
   });
 
-  it('returns non-string children as they are', () => {
-    const element = <span>text</span>;
+  it('converts line endings in every string child of several children', () => {
+    const { container } = render(
+      <Nl2br>
+        {'aaa\nbbb'}
+        {'ccc\nddd'}
+      </Nl2br>
+    );
 
-    expect(Nl2br({ children: element })).toBe(element);
-    expect(Nl2br({ children: 42 })).toBe(42);
-    expect(Nl2br({ children: null })).toBeNull();
-    expect(Nl2br({ children: undefined })).toBeUndefined();
+    expect(container.innerHTML).toBe('aaa<br>bbbccc<br>ddd');
+  });
 
-    const array: ReactNode[] = [<span key="a">a</span>, <span key="b">b</span>];
+  it('converts line endings in every string of an array of children', () => {
+    const { container } = render(<Nl2br>{['aaa\nbbb', 'ccc\nddd']}</Nl2br>);
 
-    expect(Nl2br({ children: array })).toBe(array);
+    expect(container.innerHTML).toBe('aaa<br>bbbccc<br>ddd');
+  });
+
+  it('converts line endings in nested arrays of children', () => {
+    const { container } = render(
+      <Nl2br>{[['aaa\nbbb'], ['ccc\nddd']]}</Nl2br>
+    );
+
+    expect(container.innerHTML).toBe('aaa<br>bbbccc<br>ddd');
   });
 
   it('renders non-string children as they are', () => {
@@ -41,6 +52,20 @@ describe('Nl2br', () => {
     expect(renderToStaticMarkup(<Nl2br>{<span>text</span>}</Nl2br>)).toBe(
       '<span>text</span>'
     );
+    expect(renderToStaticMarkup(<Nl2br>{null}</Nl2br>)).toBe('');
+    expect(renderToStaticMarkup(<Nl2br>{undefined}</Nl2br>)).toBe('');
+    expect(renderToStaticMarkup(<Nl2br>{false}</Nl2br>)).toBe('');
+  });
+
+  it('renders an element child and a string child side by side', () => {
+    const { container } = render(
+      <Nl2br>
+        <span>text</span>
+        {'aaa\nbbb'}
+      </Nl2br>
+    );
+
+    expect(container.innerHTML).toBe('<span>text</span>aaa<br>bbb');
   });
 
   it('does not warn about the key of the generated <br> elements', () => {
@@ -49,23 +74,17 @@ describe('Nl2br', () => {
     try {
       render(<Nl2br>{'aaa\nbbb'}</Nl2br>);
       render(<Nl2br>{'aaa\r\n\rbbb'}</Nl2br>);
+      render(
+        <Nl2br>
+          {'aaa\nbbb'}
+          {'ccc\nddd'}
+        </Nl2br>
+      );
+      render(<Nl2br>{['aaa\nbbb', 'ccc\nddd']}</Nl2br>);
 
       expect(error).not.toHaveBeenCalled();
     } finally {
       error.mockRestore();
     }
-  });
-
-  it('wraps text chunks into keyed fragments', () => {
-    const children = Nl2br({ children: 'a\nb' });
-
-    expect(Array.isArray(children)).toBe(true);
-
-    const parts = children as ReactNode[];
-
-    expect(parts).toHaveLength(3);
-    expect(isValidElement(parts[0])).toBe(true);
-    expect(isValidElement(parts[1])).toBe(true);
-    expect(isValidElement(parts[2])).toBe(true);
   });
 });

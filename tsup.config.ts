@@ -6,7 +6,6 @@ export default defineConfig({
   dts: true,
   sourcemap: true,
   clean: true,
-  treeshake: true,
   target: 'es2020',
   external: ['react', 'react/jsx-runtime']
 });

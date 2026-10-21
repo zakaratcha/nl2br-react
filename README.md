@@ -55,20 +55,28 @@ Two consecutive line endings produce two `<br>` elements.
 
 ## Non-string values
 
-Both the component and the function leave anything that is not a string alone. Numbers, `null`, `undefined`, booleans, arrays, objects and ready-made React elements are returned as they are, without copying:
+The component renders non-string children as they are. Numbers, `null`, `undefined`, booleans, arrays, objects and ready-made React elements are rendered unchanged:
+
+```tsx
+<Nl2br>{42}</Nl2br>; // 42
+<Nl2br>{<span>text</span>}</Nl2br>; // <span>text</span>
+```
+
+Every string child is converted, no matter how many children there are and no matter whether they are passed directly, as an array or nested in arrays:
+
+```tsx
+<Nl2br>{'first line\nsecond line'}</Nl2br>; // first line<br>second line
+<Nl2br>{'first\nsecond'}{'third\nfourth'}</Nl2br>; // both are converted
+<Nl2br>{['first\nsecond', 'third\nfourth']}</Nl2br>; // both are converted
+```
+
+The `nl2br` function leaves anything that is not a string alone, too:
 
 ```tsx
 nl2br(42); // 42
 nl2br(null); // null
 nl2br(undefined); // undefined
 nl2br(false); // false
-```
-
-The `Nl2br` component renders non-string children as they are:
-
-```tsx
-<Nl2br>{42}</Nl2br>; // 42
-<Nl2br>{<span>text</span>}</Nl2br>; // <span>text</span>
 ```
 
 ## License
