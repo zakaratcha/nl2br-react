@@ -1,9 +1,9 @@
-import { isValidElement, type ReactElement } from 'react';
+import { isValidElement } from 'react';
 import { describe, expect, it } from 'vitest';
 
-import { nl2br } from '../nl2br-function';
+import { nl2br, type Nl2brBreak } from '../nl2br-function';
 
-const isBr = (node: unknown): node is ReactElement<'br'> =>
+const isBr = (node: unknown): node is Nl2brBreak =>
   isValidElement(node) && node.type === 'br';
 
 describe('nl2br', () => {
@@ -21,7 +21,7 @@ describe('nl2br', () => {
   });
 
   it('keeps the separators in order and keys every <br>', () => {
-    const result = nl2br('aaa\nbbb\nccc\nddd') as Array<string | ReactElement<'br'>>;
+    const result = nl2br('aaa\nbbb\nccc\nddd');
 
     expect(result.filter((node) => isBr(node)).map((node) => node.key)).toEqual([
       '1',
@@ -31,7 +31,7 @@ describe('nl2br', () => {
   });
 
   it('returns text chunks as plain strings, not elements', () => {
-    const result = nl2br('aaa\nbbb') as Array<string | ReactElement<'br'>>;
+    const result = nl2br('aaa\nbbb');
 
     expect(typeof result[0]).toBe('string');
     expect(typeof result[2]).toBe('string');
@@ -57,7 +57,7 @@ describe('nl2br', () => {
   });
 
   it('understands \\r\\n line endings', () => {
-    const result = nl2br('aaa\r\nbbb') as Array<string | ReactElement<'br'>>;
+    const result = nl2br('aaa\r\nbbb');
 
     expect(result).toHaveLength(3);
     expect(result[0]).toBe('aaa');
@@ -66,7 +66,7 @@ describe('nl2br', () => {
   });
 
   it('understands lone \\r line endings', () => {
-    const result = nl2br('aaa\rbbb') as Array<string | ReactElement<'br'>>;
+    const result = nl2br('aaa\rbbb');
 
     expect(result).toHaveLength(3);
     expect(result[0]).toBe('aaa');
@@ -75,7 +75,7 @@ describe('nl2br', () => {
   });
 
   it('turns two consecutive line endings into two <br> elements', () => {
-    const result = nl2br('aaa\n\nbbb') as Array<string | ReactElement<'br'>>;
+    const result = nl2br('aaa\n\nbbb');
 
     expect(result).toHaveLength(5);
     expect(result[0]).toBe('aaa');
